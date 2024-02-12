@@ -17,19 +17,19 @@ y = ds.data.targets.to_numpy().reshape(-1)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 #score 0.9267847432610891
-bc = BaggingClassifier(RandomForestClassifier(), n_estimators=40, max_samples=1.0, bootstrap=True, n_jobs=-1)
-bc.fit(X_train, y_train)
+# bc = BaggingClassifier(RandomForestClassifier(), n_estimators=40, max_samples=1.0, bootstrap=True, n_jobs=-1)
+# bc.fit(X_train, y_train)
 
 #score 0.9267200082860768
 # vc = VotingClassifier([("lg", LogisticRegression()), ("rclf", RandomForestClassifier()), ("svc", SVC())], voting="hard")
 # vc.fit(X_train, y_train)
 
 # score 0.926810637251094
-# rfc = RandomForestClassifier()
-# rfc.fit(X_train, y_train)
+rfc = RandomForestClassifier()
+rfc.fit(X_train, y_train)
 
 #score 0.9267200082860768
 # svc = SVC()
 # svc.fit(X_train, y_train)
 
-print(X.info())
+print(rfc.score(X_test, y_test))
