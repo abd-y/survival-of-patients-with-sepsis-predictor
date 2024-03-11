@@ -1,4 +1,4 @@
-# survival-of-patients-with-sepsis-predictor
+# survival of patients with sepsis predictor
 
 
 ## Install requirements
