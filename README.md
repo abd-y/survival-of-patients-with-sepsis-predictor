@@ -3,5 +3,5 @@
 
 ## Install requirements
 ```
-pip install ucimlrepo scikit-learn
+pip install ucimlrepo scikit-learn xgboost hmmlearn
 ```
