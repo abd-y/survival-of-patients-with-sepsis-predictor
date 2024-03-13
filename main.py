@@ -56,21 +56,25 @@ lg = LogisticRegression()
 # hmm.fit(X_train, y_train)
 
 # PR AUC:  0.9627073074947889
-xgb = XGBClassifier(n_estimators=500, booster="gblinear")
+xgb = XGBClassifier(booster="gblinear", n_estimators=1000)
 
 # PR AUC:  0.9627049635325982
-vc = VotingClassifier([("bc", bc), ("adaboost", adaboost), ("knn", knn)], voting="soft", n_jobs=-1)
+vc = VotingClassifier([("bc", bc), ("adaboost", adaboost), ("knn", knn), ("xgb", xgb)], voting="soft", n_jobs=-1)
 
 ###################################################################
-# parameters tuning testing 
-# params = {"n_estimators": [x for x in range(1000, 10000, 1000)], "booster": ["gblinear"]}
 
-# grid_search = GridSearchCV(XGBClassifier(), params, scoring='roc_auc', n_jobs=-1)
-# grid_search.fit(X_train, y_train)
+def tune_params(model, params):
+    # parameters tuning testing 
 
-# best_model = grid_search.best_estimator_
+    grid_search = GridSearchCV(model, params, scoring='roc_auc', n_jobs=-1)
+    grid_search.fit(X_train, y_train)
 
-# print(grid_search.best_estimator_)
-# print(grid_search.best_params_)
-# print(pr_auc(best_model))
-print(pr_auc(xgb))
+    best_model = grid_search.best_estimator_
+
+    return best_model, grid_search.best_params_, pr_auc(best_model)
+
+# best_model, best_params, prauc = tune_params(
+#         XGBClassifier(), 
+#         params = {"n_estimators": [x for x in range(1000, 5000, 1000)], "booster": ["gblinear"]})
+
+print(pr_auc(knn))
