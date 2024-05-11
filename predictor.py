@@ -27,10 +27,7 @@ class Model:
         self.random_state = random_state
         self.test_size = test_size
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=self.test_size, random_state=self.random_state)
-
-    def predict(self, X):
         self.model.fit(self.X_train, self.y_train)
-        return self.model.predict(X)
     
     def tune_params(self, params):
     # parameters tuning testing 
@@ -74,7 +71,6 @@ class Model:
         return precision_score(self.y_test, self.model.predict(self.X_test))
 
     def show_performance(self):
-        self.model.fit(self.X_train, self.y_train)
 
         print("pr_auc: ", Model.pr_auc(self.model, self.X_test, self.y_test))
         print("ppv: : ", self.ppv())
@@ -85,7 +81,6 @@ class Model:
         print(df.to_string())
 
     def my_performance_test(self):
-        self.model.fit(self.X_train, self.y_train)
         tmp = self.X_test
         tmp["hospital_outcome"] = self.y_test
         alive = tmp[tmp["hospital_outcome"] == 0]
@@ -135,12 +130,15 @@ vc = VotingClassifier([("bc", bc), ("adaboost", adaboost), ("knn", knn), ("xgb",
 # best_test_size: 0.1
 
 
-
+model = Model(rfc, X, y, random_state=140)
 def predict(input):
-    model = Model(rfc, X, y, random_state=140)
     input = pd.DataFrame(input)
-    result = model.predict(input)
+    result = model.model.predict(input)
     return result
 
+def predict_proba(input):
+    input = pd.DataFrame(input)
+    result = model.model.predict_proba(input)
+    return result
 # model = Model(rfc, X, y, random_state=140)
 # model.show_performance()
