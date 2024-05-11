@@ -26,8 +26,8 @@ def process_data(age, gender, episode_number):
 
     result = predictor.predict_proba({"age_years": [age], "sex_0male_1female": [gender], "episode_number": [episode_number]})
     if result[0][0] > 0.5:
-        st.error(f"Output: Dead with {round(result[0][0] * 100, 3)}% confidance")
+        st.error(f"Output: The patient will be dead after 9.351 days with {round(result[0][0] * 100, 3)}% confidance")
     elif result[0][1] > 0.5:
-        st.success(f"Output: Alive with {round(result[0][1] * 100, 3)}% confidance")
+        st.success(f"Output: The patient will be alive after 9.351 days with {round(result[0][1] * 100, 3)}% confidance")
 if __name__ == "__main__":
     main()
