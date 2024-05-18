@@ -1,21 +1,12 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import BaggingClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import VotingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 from ucimlrepo import fetch_ucirepo
 import numpy as np
-from xgboost import XGBClassifier
-from hmmlearn.hmm import GaussianHMM
 from sklearn.metrics import precision_score
 
 class Model:
@@ -26,9 +17,12 @@ class Model:
         #seplitting the dataset into traning and testing
         self.random_state = random_state
         self.test_size = test_size
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=self.test_size, random_state=self.random_state)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=self.random_state)
         self.model.fit(self.X_train, self.y_train)
     
+    def predict_proba(self, input):
+        return self.model.predict_proba(input)
+
     def tune_params(self, params):
     # parameters tuning testing 
         model = self.model
@@ -37,7 +31,7 @@ class Model:
 
         best_model = grid_search.best_estimator_
 
-        return best_model, grid_search.best_params_, self.pr_auc(best_model)
+        return best_model, grid_search.best_params_, self.pr_auc(best_model, self.X_test, self.y_test)
     
     def data_split_test(self, from_range, to_range, test_size = 0.2):
         best_random_state = 0
@@ -71,7 +65,7 @@ class Model:
         return precision_score(self.y_test, self.model.predict(self.X_test))
 
     def show_performance(self):
-
+        #print(self.X_test.shape[0])
         print("pr_auc: ", Model.pr_auc(self.model, self.X_test, self.y_test))
         print("ppv: : ", self.ppv())
 
@@ -93,44 +87,18 @@ class Model:
         print("ones: ", prediction[prediction == 1].size)
         print("total: ", prediction.size)
 
-#importing the dataset
-ds = fetch_ucirepo(id=827)
-X = ds.data.features
-y = ds.data.targets.to_numpy().reshape(-1)
-
-#definening ML algorithms
-#PR AUC 0.966167871245655
-bc = BaggingClassifier(LogisticRegression(), n_estimators=51, n_jobs=-1)
-
-# PR AUC:  0.9662133301201661
-adaboost = AdaBoostClassifier(estimator=LogisticRegression(),n_estimators=1000, algorithm="SAMME.R", learning_rate=0.16)
-
 # PR AUC: 0.963812352780165
 # best_random_state:  43
 # best_pr_auc:  0.9727163540979228
-rfc = RandomForestClassifier(class_weight='balanced_subsample', criterion='entropy', n_estimators=500, n_jobs=-1)
+rfc = RandomForestClassifier(class_weight='balanced', criterion='log_loss', n_estimators=500, n_jobs=-1)
 
-# PR AUC:  0.9666159098763603
-##################### the best model
-knn = KNeighborsClassifier(n_neighbors=667, algorithm="ball_tree", weights="uniform")
+# With underfitting PR AUC:  0.9702098195889476
+# Without underfitting PR AUC: 0.962
+knn = KNeighborsClassifier(n_neighbors=1, algorithm="ball_tree", weights="distance", p=2, leaf_size=30)
 
-# PR AUC:  0.9627073074947889
-lg = LogisticRegression()
+# underfitting
+lg = LogisticRegression(max_iter=1000, C=4, solver='liblinear')
 
-# PR AUC:  0.9627073074947889
-xgb = XGBClassifier(booster="gblinear", n_estimators=1000)
-
-# PR AUC:  0.9627049635325982
-vc = VotingClassifier([("bc", bc), ("adaboost", adaboost), ("knn", knn), ("xgb", xgb)], voting="soft", n_jobs=-1)
-
-###################################################################
-# for knn
-# best_random_state:  115
-# best_pr_auc:  0.9702098195889476
-# best_test_size: 0.1
-
-
-model = Model(rfc, X, y, random_state=140)
 def predict(input):
     input = pd.DataFrame(input)
     result = model.model.predict(input)
@@ -140,5 +108,25 @@ def predict_proba(input):
     input = pd.DataFrame(input)
     result = model.model.predict_proba(input)
     return result
-# model = Model(rfc, X, y, random_state=140)
-# model.show_performance()
+
+#importing the dataset using ucimlrepo
+# ds = fetch_ucirepo(id=827)
+# X = ds.data.features
+# y = ds.data.targets.to_numpy().reshape(-1)
+
+#importing the dataset locally
+ds = pd.read_csv("sepsis_survival_datasets/sepsis_survival_primary_cohort.csv")
+X = ds.drop(columns=["hospital_outcome_1alive_0dead"])
+y = ds["hospital_outcome_1alive_0dead"].to_numpy()
+
+model = Model(rfc, X, y, random_state=140)
+
+def save_pr(models, X_test, y_test):
+    pr = pd.DataFrame()
+    for i in models:
+        precision, recall, thresholds = metrics.precision_recall_curve(y_test, i.predict_proba(X_test)[:, 1])
+        name = type(i).__name__
+        pr = pd.concat([pr, pd.DataFrame({f"{name}_precision": precision, 
+                        f"{name}_recall": recall})], axis=1)
+        pr.to_csv(f"./pr.csv")
+    print(pr)
