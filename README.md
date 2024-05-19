@@ -1,5 +1,7 @@
 # survival of patients with sepsis predictor
 
+## Discription
+A random forest model to predict the survival of patients with sepsis with a simple user interface. The model reached a PR AUC of 0.967.
 
 ## Install requirements
 ```
