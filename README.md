@@ -12,4 +12,4 @@ make sure you're in the same directory that has the python files
 ```
 streamlit run main.py
 ```
-You can try the model in [this hugging face space](https://huggingface.co/spaces/abd-y/survival-of-patients-with-sepsis-predictor)
+You can try the model in [this Hgging Face space](https://huggingface.co/spaces/abd-y/survival-of-patients-with-sepsis-predictor)
